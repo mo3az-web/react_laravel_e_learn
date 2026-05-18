@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { LessonForm, AddLessonButton } from "./LessonForm";
 import { X, BookOpen, ChevronRight, Upload } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 type Status = "published" | "draft";
 
 interface Lesson {
@@ -48,7 +48,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({
   const [newLesson, setNewLesson] = useState(EMPTY_LESSON);
 
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   const addLesson = () => {
     if (!newLesson.title.trim()) return;
     setLessons((p) => [...p, { ...newLesson, id: p.length + 1 }]);
@@ -56,7 +56,8 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({
     setShowLessonForm(false);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async () => 
+    {
     try {
 
       setLoading(true);
@@ -127,6 +128,9 @@ await axios.post(
     : null;
 
 
+
+
+    
 return (
   <div
     className="fixed inset-0 bg-black/25 backdrop-blur-md flex items-center justify-center z-50"
@@ -157,7 +161,7 @@ return (
         </div>
 
         <button
-          onClick={onClose}
+          onClick={() => navigate("/admin/course")}
           className="w-9 h-9 rounded-xl flex items-center justify-center
           hover:bg-gray-100 dark:hover:bg-gray-800 transition"
         >

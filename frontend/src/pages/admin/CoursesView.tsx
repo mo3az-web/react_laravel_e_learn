@@ -43,8 +43,8 @@ const CoursesView: React.FC = () => {
   // 🔄 Loading UI
   if (loadingCourses) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-pulse text-gray-400 dark:text-gray-500 text-sm">
+      <div className="flex justify-center items-center py-20 bg-white dark:bg-gray-950">
+        <div className="animate-pulse text-gray-500 dark:text-gray-400 text-sm">
           Loading courses...
         </div>
       </div>
@@ -54,14 +54,14 @@ const CoursesView: React.FC = () => {
   // 📭 Empty state
   if (coursesData.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-500">
+      <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-gray-950 text-gray-500 dark:text-gray-400">
         <p className="text-sm">No courses found</p>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-4 md:p-6 bg-white dark:bg-gray-950 min-h-screen transition-colors duration-300">
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {coursesData.map((c) => (
@@ -69,9 +69,9 @@ const CoursesView: React.FC = () => {
             key={c.id}
             onClick={() => navigate(`/admin/course/${c.id}`)}
             className="group cursor-pointer rounded-2xl overflow-hidden 
-            bg-white dark:bg-gray-900 
-            border border-gray-100 dark:border-gray-800
-            shadow-sm hover:shadow-lg 
+            bg-gray-50 dark:bg-gray-900 
+            border border-gray-200 dark:border-gray-800
+            shadow-sm hover:shadow-xl 
             hover:-translate-y-1 
             transition-all duration-300"
           >
@@ -90,12 +90,16 @@ const CoursesView: React.FC = () => {
             {/* Content */}
             <div className="p-4">
               {/* Title */}
-              <h3 className="text-[14px] font-semibold text-gray-800 dark:text-white truncate mb-1">
+              <h3 className="text-[14px] font-semibold 
+              text-gray-800 dark:text-gray-100 
+              truncate mb-1">
                 {c.title}
               </h3>
 
               {/* Description */}
-              <p className="text-[12px] text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
+              <p className="text-[12px] 
+              text-gray-600 dark:text-gray-400 
+              line-clamp-2 mb-3">
                 {c.description || "No description available"}
               </p>
 
@@ -104,7 +108,7 @@ const CoursesView: React.FC = () => {
                 <StatusBadge status={c.status ?? "published"} />
 
                 {c.views !== undefined && (
-                  <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                  <span className="text-[11px] text-gray-500 dark:text-gray-400">
                     👁 {c.views}
                   </span>
                 )}

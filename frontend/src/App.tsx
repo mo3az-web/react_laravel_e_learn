@@ -7,6 +7,7 @@ import Register from "./pages/register";
 import Login from "./pages/Login";
 import Profile from "./pages/user/profile";
 import Home from "./pages/user/home";
+import AddCourseModal from "./pages/admin/addCourseModal";
 import AdminDashboard from "./pages/admin/Dashboard";
 import DashboardView from "./pages/admin/Dashboard";
 import CoursePage from "./pages/user/course";
@@ -141,6 +142,19 @@ function App() {
           }
         />
 
+           <Route
+          path="admin/courseCreate"
+          element={
+            <ProtectedRoute role="admin">
+            <AddCourseModal
+        onClose={() => {}}
+        onSave={(data) => {
+          console.log(data);
+        }}
+      />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
     </BrowserRouter>
@@ -148,3 +162,4 @@ function App() {
 }
 
 export default App;
+

@@ -11,8 +11,12 @@ use Illuminate\Support\Facades\DB;
 
 class CourseController extends Controller
 {
-    // show courses for both users and admin
 
+
+// get course lessons 
+
+
+    // show courses for both users and admin
 public function showCourses()
 {
     // getting courses
