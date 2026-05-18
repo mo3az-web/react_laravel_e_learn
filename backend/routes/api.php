@@ -1,0 +1,52 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CourseController;
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+Route::post('/logout', [AuthController::class, 'logout']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/getCourses', [CourseController::class,'showCourses']);
+Route::get('/plans', [PlanController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (User)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:api')->group(function () {
+
+    // user info
+    Route::get('/me', [AuthController::class, 'currentUserInfo']);
+
+    // subscription
+    Route::get('/me/subscription', [AuthController::class, 'subscription']);
+     
+    // start plan
+    Route::post('/plans/start', [PlanController::class, 'startPlan']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:api'])->prefix('admin')->group(function () {
+
+    // get all courses
+
+
+    // create course
+    Route::post('/courses', [CourseController::class, 'store']);
+
+    // add lesson
+    Route::post('/courses/{course}/lessons', [CourseController::class, 'addLesson']);
+});
