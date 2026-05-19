@@ -1,11 +1,14 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
 import { StatusBadge, ThumbnailPlaceholder } from "./components/ui";
 import { LessonForm, AddLessonButton } from "./LessonForm";
- type Status = "published" | "draft";
- type View = "dashboard" | "courses" | "students" | "stats";
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 
- interface Lesson {
+const api = axios.create({ baseURL: "http://localhost:8001/api" });
+
+type Status = "published" | "draft";
+
+interface Lesson {
   id: number;
   title: string;
   url: string;
@@ -21,49 +24,136 @@ interface Course {
   thumb: string;
   views: number;
   lessons: Lesson[];
-}interface CourseDetailProps {
-  course: Course;
-  onBack: () => void;
-  onUpdate: (updated: Course) => void;
+}
+
+interface CourseDetailProps {
+  onBack?: () => void;
+  onUpdate?: (updated: Course) => void;
 }
 
 const EMPTY_LESSON = { title: "", url: "", desc: "", free: true };
 
-const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onUpdate }) => {
+const CourseDetail: React.FC<CourseDetailProps> = ({ onUpdate }) => {
+  // ✅ useParams جوّا الكومبوننت
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const [course, setCourse] = useState<Course | null>(null);
+  const [loadingCourse, setLoadingCourse] = useState(true);
+
   const [showForm, setShowForm] = useState(false);
   const [newLesson, setNewLesson] = useState(EMPTY_LESSON);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [loadingLesson, setLoadingLesson] = useState(true);
 
-  const toggleAccess = (id: number) => {
-    onUpdate({
-      ...course,
-      lessons: course.lessons.map((l) => (l.id === id ? { ...l, free: !l.free } : l)),
-    });
+  // ───────── Fetch Course ─────────
+  useEffect(() => {
+    if (!id) return;
+    const fetchCourse = async () => {
+      try {
+const res = await api.get(`/courses/${id}`);
+setCourse(res.data ?? null);
+      } catch (err) {
+        console.error("Failed to fetch course:", err);
+        setCourse(null);
+      } finally {
+        setLoadingCourse(false);
+      }
+    };
+    fetchCourse();
+  }, [id]);
+
+  // ───────── Fetch Lessons ─────────
+useEffect(() => {
+  if (!id) return;
+
+  const fetchLessons = async () => {
+    try {
+      const res = await api.get(`/courses/${id}/lessons`);
+      setLessons(res.data?.lessons ?? []);
+    } catch (err) {
+      console.error("Failed to fetch lessons:", err);
+      setLessons([]);
+    } finally {
+      setLoadingLesson(false);
+    }
   };
 
-  const addLesson = () => {
+  fetchLessons();
+}, [id]);
+
+  // ───────── Toggle Free/Paid ─────────
+  const toggleAccess = async (lessonId: number) => {
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (!lesson) return;
+    try {
+      await api.patch(`/courses/${id}/lessons/${lessonId}`, {
+        free: !lesson.free,
+      });
+      setLessons((prev) =>
+        prev.map((l) => (l.id === lessonId ? { ...l, free: !l.free } : l))
+      );
+    } catch (err) {
+      console.error("Failed to update lesson:", err);
+    }
+  };
+
+  // ───────── Add Lesson ─────────
+  const addLesson = async () => {
     if (!newLesson.title.trim()) return;
-    const newId = course.lessons.length
-      ? Math.max(...course.lessons.map((l) => l.id)) + 1
-      : 1;
-    onUpdate({
-      ...course,
-      lessons: [...course.lessons, { ...newLesson, id: newId }],
-    });
-    setNewLesson(EMPTY_LESSON);
-    setShowForm(false);
+    try {
+      const res = await api.post(`/courses/${id}/lessons`, newLesson);
+      setLessons((prev) => [...prev, res.data.data]);
+      setNewLesson(EMPTY_LESSON);
+      setShowForm(false);
+    } catch (err) {
+      console.error("Failed to add lesson:", err);
+    }
   };
 
-  const freeLessons = course.lessons.filter((l) => l.free).length;
+  const handleBack = () => navigate("/admin/course");
+
+  // ───────── Loading / Error States ─────────
+  if (loadingCourse) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-[13px] text-gray-400">Loading course...</p>
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <p className="text-[13px] text-gray-400">Course not found.</p>
+        <button
+          onClick={handleBack}
+          className="text-[12px] text-emerald-600 hover:underline"
+        >
+          Back to courses
+        </button>
+      </div>
+    );
+  }
+
+  const freeLessons = lessons.filter((l) => l.free).length;
 
   return (
     <div className="flex flex-col gap-3">
       {/* Back button */}
       <button
-        onClick={onBack}
+        onClick={handleBack}
         className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 w-fit"
       >
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <polyline points="10,3 5,8 10,13"/>
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <polyline points="10,3 5,8 10,13" />
         </svg>
         Back to courses
       </button>
@@ -92,10 +182,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onUpdate })
           </p>
           <div className="flex gap-5">
             {[
-              { val: course.views.toLocaleString(), lbl: "Views" },
-              { val: course.lessons.length, lbl: "Lessons" },
+              { val: course.views?.toLocaleString() ?? 0, lbl: "Views" },
+              { val: lessons.length, lbl: "Lessons" },
               { val: freeLessons, lbl: "Free" },
-              { val: course.lessons.length - freeLessons, lbl: "Paid" },
+              { val: lessons.length - freeLessons, lbl: "Paid" },
             ].map((s) => (
               <div key={s.lbl}>
                 <p className="text-[16px] font-medium">{s.val}</p>
@@ -109,35 +199,49 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onUpdate })
       {/* Lessons card */}
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[13px] font-medium">Lessons ({course.lessons.length})</h3>
+          <h3 className="text-[13px] font-medium">
+            Lessons ({loadingLesson ? "..." : lessons.length})
+          </h3>
         </div>
 
-        <div className="space-y-2">
-          {course.lessons.map((l, i) => (
-            <div
-              key={l.id}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40"
-            >
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] flex items-center justify-center flex-shrink-0">
-                {i + 1}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px]">{l.title}</p>
-                <p className="text-[11px] text-gray-400 truncate">{l.url || "No link"}</p>
-              </div>
-              <button
-                onClick={() => toggleAccess(l.id)}
-                className={`text-[10px] px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
-                  l.free
-                    ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                    : "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
-                }`}
+        {loadingLesson ? (
+          <p className="text-[12px] text-gray-400 text-center py-4">
+            Loading lessons...
+          </p>
+        ) : lessons.length === 0 ? (
+          <p className="text-[12px] text-gray-400 text-center py-4">
+            No lessons yet.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {lessons.map((l, i) => (
+              <div
+                key={l.id}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40"
               >
-                {l.free ? "Free" : "Paid"}
-              </button>
-            </div>
-          ))}
-        </div>
+                <div className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] flex items-center justify-center flex-shrink-0">
+                  {i + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px]">{l.title}</p>
+                  <p className="text-[11px] text-gray-400 truncate">
+                    {l.url || "No link"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => toggleAccess(l.id)}
+                  className={`text-[10px] px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
+                    l.free
+                      ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                      : "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
+                  }`}
+                >
+                  {l.free ? "Free" : "Paid"}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="mt-3">
           {showForm ? (

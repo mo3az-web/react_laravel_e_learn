@@ -13,8 +13,21 @@ class CourseController extends Controller
 {
 
 
-// get course lessons 
+// get course  
+public function showCourse($id)
+{
+    $course = Course::with('lessons')->find($id);
 
+    if (!$course) {
+        return response()->json([
+            'message' => 'Course not found'
+        ], 404);
+    }
+
+    return response()->json([
+        'data' => $course
+    ]);
+}
 
     // show courses for both users and admin
 public function showCourses()

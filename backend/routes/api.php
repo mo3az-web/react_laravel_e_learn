@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourseController;
-
+use App\Http\Controllers\LessonController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -15,7 +15,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/getCourses', [CourseController::class,'showCourses']);
 Route::get('/plans', [PlanController::class, 'index']);
-
+Route::get('/courses/{course}/lessons' ,[LessonController::class, 'showLessons']);
+Route::get('/courses/{id}', [CourseController::class, 'showCourse']);
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (User)
