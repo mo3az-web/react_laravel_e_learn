@@ -1,56 +1,80 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\Course;
-use App\Models\Progress;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class LessonController extends Controller
 {
-    
-    public function showLesson($id)
+    public function showLessons($courseId)
     {
-        $lesson = Lesson::with('course')->findOrFail($id);
+        $course = Course::findOrFail($courseId);
+
+        $lessons = $course->lessons()->get();
+
         return response()->json([
-            'lesson' => $lesson,
-            'next_lesson_id' => $lesson->getNextLessonId(), // ميثود مساعدة في الموديل
+            'status'  => true,
+            'lessons' => $lessons,
         ]);
     }
-public function showLessons($courseId)
-{
-    $lessons = Lesson::where('course_id', $courseId)
-        ->orderBy('order')
-        ->get();
 
-    return response()->json([
-        'lessons' => $lessons,
-    ]);
-} 
-  
-    public function updateProgress(Request $request, $id)
+    public function addLesson(Request $request)
     {
-        $user = Auth::user();
-        
-      
-        $progress = Progress::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'lesson_id' => $id,
-            ],
-            [
-                'watched' => true,
-                'watched_at' => now(),
-            ]
-        );
+        $validated = $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'title'     => 'required|string|max:255',
+            'video_url' => 'required|url',
+            'duration'  => 'required|integer|min:1',
+            'is_free'   => 'boolean',
+            'order'     => 'nullable|integer|min:0',
+        ]);
+
+        // auto-assign order if not provided
+        if (empty($validated['order'])) {
+            $maxOrder = Lesson::where('course_id', $validated['course_id'])->max('order') ?? 0;
+            $validated['order'] = $maxOrder + 1;
+        }
+
+        $lesson = Lesson::create($validated);
 
         return response()->json([
-            'message' =>'fine
-            ',
-            'progress' => $progress
+            'status'  => true,
+            'message' => 'تم إضافة الدرس بنجاح',
+            'lesson'  => $lesson,
+        ], 201);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $lesson = Lesson::findOrFail($id);
+
+        $validated = $request->validate([
+            'title'     => 'sometimes|string|max:255',
+            'video_url' => 'sometimes|url',
+            'duration'  => 'sometimes|integer|min:1',
+            'is_free'   => 'sometimes|boolean',
+            'order'     => 'sometimes|integer|min:0',
+        ]);
+
+        $lesson->update($validated);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'تم تحديث الدرس',
+            'lesson'  => $lesson,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $lesson = Lesson::findOrFail($id);
+        $lesson->delete();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'تم حذف الدرس',
         ]);
     }
 }

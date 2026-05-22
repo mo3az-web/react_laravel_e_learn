@@ -41,13 +41,17 @@ Route::middleware('auth:api')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:api'])->prefix('admin')->group(function () {
-
-    // get all courses
-
-
-    // create course
+ 
+    // Courses CRUD
     Route::post('/courses', [CourseController::class, 'store']);
-
-    // add lesson
-    Route::post('/courses/{course}/lessons', [CourseController::class, 'addLesson']);
+    Route::put('/courses/{id}', [CourseController::class, 'update']);
+    Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+ 
+    // Lessons CRUD
+    
+    Route::put('/lessons/{id}', [LessonController::class, 'update']);
+    Route::delete('/lessons/{id}', [LessonController::class, 'destroy']);
 });
+
+Route::post('/addLesson', [LessonController::class, 'addLesson']);
+ 

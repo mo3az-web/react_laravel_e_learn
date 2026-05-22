@@ -95,31 +95,7 @@ public function showCourses()
     });
 }
 
-    // 3. إضافة درس لكورس معين (رفع فيديو)
-    public function addLesson(Request $request, $courseId)
-{
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'video_url' => 'required|url', // بقى URL مش file
-        'duration' => 'nullable|string',
-        'order' => 'required|integer',
-    ]);
-
-    $course = Course::findOrFail($courseId);
-
-    $lesson = $course->lessons()->create([
-        'title' => $request->title,
-        'video_url' => $request->video_url, // بنخزن الرابط مباشرة
-        'duration' => $request->duration,
-        'order' => $request->order,
-    ]);
-
-    return response()->json([
-        'message' => 'Lesson added successfully',
-        'lesson' => $lesson
-    ], 201);
-}
-
+   
     // 4. حذف كورس بالكامل مع ملفاته
     public function destroy($id)
 {
