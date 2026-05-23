@@ -14,20 +14,24 @@ class Course extends Model
         'title',
         'description',
         'thumbnail',
+        'category_id', 
     ];
 
-    // lessons داخل الكورس
+    
     public function lessons(): HasMany
     {
         return $this->hasMany(Lesson::class, 'course_id')
             ->orderBy('order');
     }
 
-    // users اللي مشتركين في الكورس + progress
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
             ->withPivot('progress')
             ->withTimestamps();
     }
+    public function category(): BelongsTo
+{
+    return $this->belongsTo(Category::class);
+}
 }
