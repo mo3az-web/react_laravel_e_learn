@@ -5,11 +5,13 @@ use App\Http\Controllers\PlanController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\LessonController;
+use App\Http\Controllers\ProgressController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
 |--------------------------------------------------------------------------
 */
+
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -24,7 +26,9 @@ Route::get('/courses/{id}', [CourseController::class, 'showCourse']);
 */
 
 Route::middleware('auth:api')->group(function () {
-
+    
+  Route::post('/lessons/{id}/watched', [ProgressController::class, 'markWatched']);
+    Route::post('/lessons/{id}/time', [ProgressController::class, 'saveTime']);
     // user info
     Route::get('/me', [AuthController::class, 'currentUserInfo']);
 

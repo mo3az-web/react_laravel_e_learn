@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlay, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "http://localhost:8001/api" });
@@ -305,15 +305,17 @@ const Home: React.FC = () => {
 
 // ─────────────────────────────── Course Card ───────────────────────────────
 const CourseCard: React.FC<{ course: Course; onWatch: () => void }> = ({ course, onWatch }) => {
-
+  const navigate = useNavigate(); // ✔ هنا صح
 
   return (
-    <motion.div
+     <motion.div
+      onClick={() => navigate(`/course/${course.id}`)} // ✔ هنا
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -6 }}
       transition={{ duration: 0.35 }}
       className="
+        cursor-pointer
         group rounded-3xl overflow-hidden
         bg-white dark:bg-[#161b27]
         border border-slate-100 dark:border-white/5

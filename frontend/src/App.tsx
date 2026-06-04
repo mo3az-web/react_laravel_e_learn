@@ -53,27 +53,7 @@ const NavbarController = () => {
 };
 
 function App() {
-  // ✅ منع right-click
-  useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-    document.addEventListener("contextmenu", handleContextMenu);
-    return () => document.removeEventListener("contextmenu", handleContextMenu);
-  }, []);
 
-  // ✅ منع DevTools shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && e.key === "I") ||
-        (e.ctrlKey && e.key === "U")
-      ) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   return (
     <BrowserRouter>
@@ -103,8 +83,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/course"
+   <Route
+          path="/course/:id"
           element={
             <ProtectedRoute role="user">
               <CoursePage />

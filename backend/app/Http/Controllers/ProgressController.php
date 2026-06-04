@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Progress;
@@ -10,73 +10,53 @@ use Illuminate\Support\Facades\Auth;
 
 class ProgressController extends Controller
 {
-    /**
-     * تسجيل أو تحديث تقدم الطالب في درس معين
-     */
-    public function toggleComplete(Request $request, $lessonId)
+    public function saveTime(Request $request, $lessonId)
     {
-        $user = Auth::user();
+        $request->validate([
+            'second' => 'required|integer|min:0'
+        ]);
 
-        // التأكد من أن الدرس موجود
-        $lesson = Lesson::findOrFail($lessonId);
+        $user = $request->user(); // 👈 Passport user
 
-        // تحديث أو إنشاء سجل التقدم
         $progress = Progress::updateOrCreate(
             [
-                'user_id'   => $user->id,
-                'lesson_id' => $lessonId,
+                'user_id' => $user->id,
+                'lesson_id' => $lessonId
             ],
             [
-                'watched'    => $request->status ?? true, // ممكن تبعت true أو false
-                'watched_at' => now(),
+                'last_second' => $request->second
             ]
         );
 
-        // حساب نسبة الإنجاز الكلية في الكورس ده بعد التحديث
-        $completionPercentage = $this->calculateCourseProgress($user->id, $lesson->course_id);
-
         return response()->json([
-            'message' => 'Progress updated successfully',
-            'watched' => $progress->watched,
-            'course_completion' => $completionPercentage . '%',
+            'message' => 'time saved',
+            'data' => $progress
         ]);
     }
 
-    /**
-     * جلب حالة التقدم لكورس كامل (عشان تظهر علامات الصح في الـ Sidebar)
-     */
-    public function getCourseProgress($courseId)
+    public function markWatched(Request $request, $id)
     {
-        $user = Auth::user();
+        $request->validate([
+            'second' => 'nullable|integer|min:0'
+        ]);
 
-        $completedLessons = Progress::where('user_id', $user->id)
-            ->whereHas('lesson', function($query) use ($courseId) {
-                $query->where('course_id', $courseId);
-            })
-            ->where('watched', true)
-            ->pluck('lesson_id'); // هيرجع IDs الدروس اللي خلصت بس
+        $user = $request->user(); // 👈 مهم جدًا
+
+        $progress = Progress::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'lesson_id' => $id
+            ],
+            [
+                'watched' => 1,
+                'watched_at' => now(),
+                'last_second' => $request->second ?? 0
+            ]
+        );
 
         return response()->json([
-            'completed_lessons' => $completedLessons,
-            'percentage' => $this->calculateCourseProgress($user->id, $courseId)
+            'message' => 'marked as watched',
+            'data' => $progress
         ]);
-    }
-
-    /**
-     * Private Function لحساب النسبة المئوية
-     */
-    private function calculateCourseProgress($userId, $courseId)
-    {
-        $totalLessons = Lesson::where('course_id', $courseId)->count();
-        
-        if ($totalLessons === 0) return 0;
-
-        $completedCount = Progress::where('user_id', $userId)
-            ->where('watched', true)
-            ->whereHas('lesson', function($query) use ($courseId) {
-                $query->where('course_id', $courseId);
-            })->count();
-
-        return round(($completedCount / $totalLessons) * 100);
     }
 }

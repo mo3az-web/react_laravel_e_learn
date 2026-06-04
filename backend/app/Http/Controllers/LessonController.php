@@ -10,15 +10,28 @@ class LessonController extends Controller
 {
     public function showLessons($courseId)
     {
-        $course = Course::findOrFail($courseId);
+    $userId = auth()->id();
 
-        $lessons = $course->lessons()->get();
+    $lessons = Lesson::where('course_id', $courseId)
+        ->leftJoin('progresses', function ($join) use ($userId) {
+            $join->on('lessons.id', '=', 'progresses.lesson_id')
+                 ->where('progresses.user_id', $userId);
+        })
+        ->select(
+            'lessons.id',
+            'lessons.title',
+            'lessons.video_url',
+            'lessons.duration',
+            'lessons.is_free',
+            'progresses.watched',
+            'progresses.last_second'
+        )
+        ->get();
 
-        return response()->json([
-            'status'  => true,
-            'lessons' => $lessons,
-        ]);
-    }
+    return response()->json([
+        'lessons' => $lessons
+    ]);
+}
 
     public function addLesson(Request $request)
     {
