@@ -59,20 +59,23 @@ const CoursePage: React.FC = () => {
   const [selected, setSelected] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 user
+  // USER
   useEffect(() => {
     api.get("/me")
       .then(res => setUser(res.data.user))
       .catch(() => navigate("/login"));
-  }, []);
+  }, [navigate]);
 
-  // 🔹 lessons
+  // LESSONS
   useEffect(() => {
     if (!id) return;
 
     api.get(`/courses/${id}/lessons`)
       .then(res => {
-        const data: Lesson[] = res.data.lessons || [];
+        const data: Lesson[] = (res.data.lessons || []).map((l: Lesson) => ({
+          ...l,
+          watched: !!l.watched, // 🔥 مهم جداً
+        }));
 
         setLessons(data);
         setSelected(data[0] || null);
@@ -83,7 +86,7 @@ const CoursePage: React.FC = () => {
   const canWatch = (lesson: Lesson) =>
     lesson.is_free || user?.isSubscribed;
 
-  // 🔥 mark watched + update UI instantly
+  // SELECT LESSON
   const handleSelectLesson = async (lesson: Lesson) => {
     setSelected(lesson);
 
@@ -92,12 +95,9 @@ const CoursePage: React.FC = () => {
     try {
       await api.post(`/lessons/${lesson.id}/watched`);
 
-      // 🔥 update state instantly (important fix)
-      setLessons((prev) =>
-        prev.map((l) =>
-          l.id === lesson.id
-            ? { ...l, watched: true }
-            : l
+      setLessons(prev =>
+        prev.map(l =>
+          l.id === lesson.id ? { ...l, watched: true } : l
         )
       );
     } catch (err) {
@@ -121,7 +121,6 @@ const CoursePage: React.FC = () => {
     );
   }
 
-  // 🔥 resume time
   const startTime = selected.last_second ?? 0;
 
   const videoId = extractYouTubeId(selected.video_url);
@@ -130,8 +129,8 @@ const CoursePage: React.FC = () => {
     ? `https://www.youtube.com/embed/${videoId}?start=${startTime}`
     : null;
 
-  // 🔥 progress calculation (FIXED)
-  const watchedCount = lessons.filter(l => l.watched === true).length;
+  // 🔥 FIXED PROGRESS
+  const watchedCount = lessons.filter(l => l.watched).length;
 
   const progressPercent = lessons.length
     ? Math.round((watchedCount / lessons.length) * 100)
@@ -141,15 +140,14 @@ const CoursePage: React.FC = () => {
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-4 gap-6">
 
-        {/* 🎥 VIDEO */}
+        {/* VIDEO */}
         <div className="lg:col-span-3 space-y-4">
 
           <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
 
             {!canWatch(selected) ? (
-              <div className="h-[420px] flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                <FiLock className="text-4xl text-gray-400 mb-3" />
-                <p className="text-lg mb-4">هذا الدرس مدفوع</p>
+              <div className="h-[420px] flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                <FiLock className="text-4xl text-gray-400" />
               </div>
 
             ) : embedUrl ? (
@@ -168,36 +166,33 @@ const CoursePage: React.FC = () => {
 
           </div>
 
-          {/* TITLE */}
-          <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <FiVideo className="text-emerald-400" />
-              {selected.title}
-            </h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <FiVideo className="text-emerald-400" />
+            {selected.title}
+          </h2>
 
-            <p className="text-gray-400 text-sm mt-1">
-              {canWatch(selected)
-                ? "ابدأ المشاهدة وطبق عمليًا"
-                : "هذا الدرس متاح للمشتركين فقط"}
-            </p>
-          </div>
+          <p className="text-gray-400 text-sm">
+            {canWatch(selected)
+              ? "ابدأ المشاهدة"
+              : "هذا الدرس للمشتركين فقط"}
+          </p>
+
         </div>
 
-        {/* 📚 SIDEBAR */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-lg">
+        {/* SIDEBAR */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
-          <h3 className="font-bold mb-4 text-lg flex items-center gap-2">
+          <h3 className="font-bold mb-4 flex items-center gap-2">
             <FiPlayCircle className="text-emerald-400" />
-            محتوى الكورس
+            المحتوى
           </h3>
 
-          {/* progress */}
-          <div className="mb-5">
+          {/* PROGRESS */}
+          <div className="mb-4">
             <div className="flex justify-between text-sm mb-1">
               <span className="flex items-center gap-1">
                 <FiTrendingUp /> التقدم
               </span>
-
               <span className="text-emerald-400">
                 {progressPercent}%
               </span>
@@ -205,15 +200,14 @@ const CoursePage: React.FC = () => {
 
             <div className="h-2 bg-gray-800 rounded-full">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
+                className="h-full bg-emerald-500 rounded-full"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
 
-          {/* lessons */}
-          <div className="space-y-2 max-h-[500px] overflow-auto pr-1">
-
+          {/* LESSONS */}
+          <div className="space-y-2">
             {lessons.map((lesson) => {
               const locked = !canWatch(lesson);
               const active = selected?.id === lesson.id;
@@ -222,39 +216,34 @@ const CoursePage: React.FC = () => {
                 <div
                   key={lesson.id}
                   onClick={() => !locked && handleSelectLesson(lesson)}
-                  className={`
-                    flex items-center justify-between p-3 rounded-xl transition
-                    ${active ? "bg-emerald-500/20 border border-emerald-500" : "hover:bg-white/10"}
-                    ${locked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                  className={`p-3 rounded-xl flex justify-between items-center cursor-pointer
+                    ${active ? "bg-emerald-500/20" : "hover:bg-white/10"}
+                    ${locked ? "opacity-50 cursor-not-allowed" : ""}
                   `}
                 >
-
-                  <div className="flex items-center gap-2 truncate">
-
+                  <div className="flex items-center gap-2">
                     {locked ? (
-                      <FiLock className="text-gray-400" />
+                      <FiLock />
                     ) : lesson.watched ? (
                       <FiCheckCircle className="text-emerald-400" />
                     ) : (
-                      <FiPlayCircle className="text-gray-400" />
+                      <FiPlayCircle />
                     )}
 
                     <span className="truncate">{lesson.title}</span>
                   </div>
 
                   {lesson.is_free && (
-                    <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
+                    <span className="text-xs text-emerald-400">
                       مجاني
                     </span>
                   )}
-
                 </div>
               );
             })}
-
           </div>
-        </div>
 
+        </div>
       </div>
     </div>
   );
