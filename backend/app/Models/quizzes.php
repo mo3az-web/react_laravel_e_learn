@@ -3,27 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\questions;
+use App\Models\Question;
 use App\Models\Lesson;
 
-class quizzes extends Model
+class Quiz extends Model
 {
-
-
-protected $table = 'quizzes';
-
-    protected $fillable = 
-    [
+    protected $fillable = [
         'lesson_id',
         'title',
     ]; 
 
-public function question()
-{
-    return $this->hasMany(questions::class, 'quiz_id');
-}
-public function lesson()
-{
-return $this->belongsTo(Lesson::class, 'lesson_id');
-}
+    public function questions()
+    {
+        return $this->hasMany(Question::class, 'quiz_id');
+    }
+
+    public function lesson()
+    {
+        return $this->belongsTo(Lesson::class, 'lesson_id');
+    }
 }
