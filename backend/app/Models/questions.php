@@ -12,9 +12,10 @@ protected $table = 'question';
 
     protected $fillable = 
     [
-        'quiz_id'   
+        'quiz_id' ,  
         'question_id',
         'question' ,
+        'question_point',
     ]; 
 
 public function choices()

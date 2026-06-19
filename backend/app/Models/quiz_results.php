@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\quizzes;
 use App\Models\User; // أو اسم موديل الطالب عندك لو اسمه Student
 
-class quiz_results extends Model
+class quiz_result extends Model
 {
     protected $table = 'quiz_results';
 

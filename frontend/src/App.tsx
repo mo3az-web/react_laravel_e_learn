@@ -15,7 +15,7 @@ import ProtectedRoute from "./protectedRoutes";
 import PricingPage from "./pages/user/Subscription";
 import CheckoutPage from "./pages/user/CheckOut";
 import CoursesView from "./pages/admin/CoursesView";
-
+import AddExamPage from "./pages/admin/addexam";
 // NAVBARS
 import Navbar from "./elements/navbar";
 import UserNavbar from "./elements/navbarUser";
@@ -146,6 +146,10 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/lessons/:lessonId/add-exam"
+  element={<AddExamPage />}
+/>
       </Routes>
     </BrowserRouter>
   );

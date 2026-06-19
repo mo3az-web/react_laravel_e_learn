@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProgressController;
+use App\Http\Controllers\QuizController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -25,7 +26,7 @@ Route::get('/courses/{id}', [CourseController::class, 'showCourse']);
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     
   Route::post('/lessons/{id}/watched', [ProgressController::class, 'markWatched']);
     Route::post('/lessons/{id}/time', [ProgressController::class, 'saveTime']);
@@ -44,8 +45,10 @@ Route::middleware('auth:api')->group(function () {
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:api'])->prefix('admin')->group(function () {
- 
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+  Route::post('/addquiz', [quizController::class, 'addQuiz']);
+    Route::post('/addquestion', [quizController::class, 'addQuestion']);
+    Route::post('/addchoise', [quizController::class, 'addChoises']);
     // Courses CRUD
     Route::post('/courses', [CourseController::class, 'store']);
     Route::put('/courses/{id}', [CourseController::class, 'update']);
@@ -55,7 +58,7 @@ Route::middleware(['auth:api'])->prefix('admin')->group(function () {
     
     Route::put('/lessons/{id}', [LessonController::class, 'update']);
     Route::delete('/lessons/{id}', [LessonController::class, 'destroy']);
+    Route::post('/addLesson', [LessonController::class, 'addLesson']);
+ 
 });
 
-Route::post('/addLesson', [LessonController::class, 'addLesson']);
- 
