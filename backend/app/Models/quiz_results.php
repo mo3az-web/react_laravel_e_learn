@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\quizzes;
+use App\Models\Quiz;
 use App\Models\User; // أو اسم موديل الطالب عندك لو اسمه Student
 
 class quiz_result extends Model
@@ -17,13 +17,13 @@ class quiz_result extends Model
     ];
 
     // النتيجة دي تابعة لانهي امتحان؟
-    public function quiz()
+    public function Quiz()
     {
-        return $this->belongsTo(quizzes::class, 'quiz_id');
+        return $this->belongsTo(Quiz::class, 'quiz_id');
     }
 
     // النتيجة دي تابعة لانهي طالب؟
-    public function student()
+    public function Student()
     {
         return $this->belongsTo(User::class, 'student_id');
     }

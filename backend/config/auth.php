@@ -43,7 +43,7 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-        'driver' => 'sanctum', // تأكد إن دي jwt مش sanctum
+        'driver' => 'jwt', // تأكد إن دي jwt مش sanctum
         'provider' => 'users',
     ],
     ],

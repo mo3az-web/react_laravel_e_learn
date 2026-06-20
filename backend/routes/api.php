@@ -26,7 +26,7 @@ Route::get('/courses/{id}', [CourseController::class, 'showCourse']);
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
     
   Route::post('/lessons/{id}/watched', [ProgressController::class, 'markWatched']);
     Route::post('/lessons/{id}/time', [ProgressController::class, 'saveTime']);
@@ -45,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+Route::middleware(['auth:api'])->prefix('admin')->group(function () {
   Route::post('/addquiz', [quizController::class, 'addQuiz']);
     Route::post('/addquestion', [quizController::class, 'addQuestion']);
     Route::post('/addchoise', [quizController::class, 'addChoises']);
